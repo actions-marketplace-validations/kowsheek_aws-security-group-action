@@ -3,7 +3,7 @@
 ```
     steps:
       - id: open-firewall
-        uses: kowsheek/aws-security-group-action@v1
+        uses: kowsheek/aws-security-group-action@v1.0.0
         with:
           group-id: 'sg-XXXXXX'
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
