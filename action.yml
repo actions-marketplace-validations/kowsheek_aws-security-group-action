@@ -1,23 +1,12 @@
-name: 'AWS Open Firewall'
-description: 'This action will add the github server IP Address to a Security Group on AWS EC2'
+name: 'aws-security-group-action'
+description: 'aws-security-group-action'
 branding:
   icon: unlock
   color: gray-dark
 inputs:
-  rule-name: 
-    description: 'name of the security Group on AWS EC2 Firewall Panel'
-    required: false
-    default: 'github-deploy'
-  aws-access-key-id:
-    description: 'AWS Access Key ID'
+  group-id: 
+    description: 'ID of the security group'
     required: true
-  aws-secret-access-key:
-    description: 'AWS Secret Access Key'
-    required: true
-  aws-region:
-    description: 'AWS Region'
-    required: false
-    default: 'us-east-1'
   action:
     description: 'Choose between "open" or "close"'
     required: false
@@ -25,26 +14,19 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Get My IP
+    - name: Get IP
       run: |
-        echo 'MYIP<<EOF' >> $GITHUB_ENV
+        echo 'GAIP<<EOF' >> $GITHUB_ENV
         curl https://checkip.amazonaws.com >> $GITHUB_ENV
         echo 'EOF' >> $GITHUB_ENV
       shell: bash
         
-    - name: Configure AWS command line
-      uses: aws-actions/configure-aws-credentials@v1
-      with:
-        aws-access-key-id: ${{ inputs.aws-access-key-id }}
-        aws-secret-access-key: ${{ inputs.aws-secret-access-key }}
-        aws-region: ${{ inputs.aws-region }}
-
-    - name: Allow our connection on AWS Firewall rule
+    - name: Add rule
       if: ${{ inputs.action == 'open' }}
-      run: aws ec2 authorize-security-group-ingress --group-name ${{ inputs.rule-name }} --protocol all --cidr ${{ env.MYIP }}/32
+      run: aws ec2 authorize-security-group-ingress --group-id ${{ inputs.group-id }} --protocol all --cidr ${{ env.GAIP }}/32
       shell: bash
 
-    - name: Close our connection on AWS Firewall rule
+    - name: Remove rule
       if: ${{ inputs.action == 'close' }}
-      run: aws ec2 revoke-security-group-ingress --group-name ${{ inputs.rule-name }} --protocol all --cidr ${{ env.MYIP }}/32
+      run: aws ec2 revoke-security-group-ingress --group-id ${{ inputs.group-id }} --protocol all --cidr ${{ env.GAIP }}/32
       shell: bash
